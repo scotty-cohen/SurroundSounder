@@ -11,22 +11,20 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ProcessorInterface.h"
 
-class NumBussesComboBox : public juce::Component
-{
+class NumBussesComboBox : public juce::Component {
 public:
-    NumBussesComboBox();
-    ~NumBussesComboBox();
+    NumBussesComboBox(ProcessorInterface *inInterface);
+
+    ~NumBussesComboBox() override;
 
     void resized() override;
 
-    using NumBussesChangedCallback = std::function<void(int)>;
-    void setNumBussesChangedCallback(std::function<void(int)> callback);
-
 private:
-    juce::ComboBox comboBox;
-    
-    std::function<void(int)> numBussesChangedCallback;
+    std::unique_ptr<juce::ComboBox> comboBox;
 
-    void comboBoxChanged();
+    std::unique_ptr<ComboBoxParameterAttachment> mAttachment;
+
+    ProcessorInterface *mProcessorInterface;
 };

@@ -8,57 +8,53 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "ParameterDefines.h"
 
 
 
 //==============================================================================
-Week3SineGeneratorAudioProcessorEditor::Week3SineGeneratorAudioProcessorEditor (Week3SineGeneratorAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
-{
+SurroundSounderAudioProcessorEditor::SurroundSounderAudioProcessorEditor(SurroundSounderAudioProcessor &p)
+        : AudioProcessorEditor(&p), audioProcessor(p) {
     setLookAndFeel(&mLookAndFeel);
-    
-    auto& tree_state = audioProcessor.getParameterManager()->getTreeState();
+
+    auto tree_state = audioProcessor.getParameterManager()->getTreeState();
 
     for (int i = 0; i < audioProcessor.getParameters().size(); i++) {
-        bool stopAtEnd = (i != AppParameterID::Pan); // Set stopAtEnd to false only for the Pan knob
-        mSliderContainers.add(new SliderContainer(stopAtEnd));
-        mSliderContainers[i]->setParameterToControl(tree_state, ParameterIDStrings[i]);
-        addAndMakeVisible(mSliderContainers[i]);
+        if (i == AppParameterID::BusCount) {
+            continue;
+        } else {
+            bool stopAtEnd = (i != AppParameterID::Pan); // Set stopAtEnd to false only for the Pan knob
+            mSliderContainers.add(new SliderContainer(stopAtEnd));
+            mSliderContainers[i]->setParameterToControl(*tree_state, ParameterIDStrings[i]);
+            addAndMakeVisible(mSliderContainers[i]);
+        }
     }
-    
-    mNumBussesComboBox.setNumBussesChangedCallback([this](int selectedNumBusses) {
-        static_cast<Week3SineGeneratorAudioProcessor*>(&this->processor)->setNumBuses(selectedNumBusses);
-    });
+
+    mNumBussesComboBox = std::make_unique<NumBussesComboBox>(&audioProcessor);
 
 
-    addAndMakeVisible(mNumBussesComboBox);
-    
+    addAndMakeVisible(mNumBussesComboBox.get());
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (800, 475);
+    setSize(800, 475);
 }
 
-Week3SineGeneratorAudioProcessorEditor::~Week3SineGeneratorAudioProcessorEditor()
+SurroundSounderAudioProcessorEditor::~SurroundSounderAudioProcessorEditor()
 {
     setLookAndFeel(nullptr);
 }
 
 //==============================================================================
-void Week3SineGeneratorAudioProcessorEditor::paint (juce::Graphics& g)
-{
+void SurroundSounderAudioProcessorEditor::paint(juce::Graphics &g) {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (Colour(194,220,226));
+    g.fillAll(Colour(194, 220, 226));
 }
 
-void Week3SineGeneratorAudioProcessorEditor::resized()
-{
-    
+void SurroundSounderAudioProcessorEditor::resized() {
+
     // Remove the pan knob from the mSliderContainers array
-    for (int i = 0; i < mSliderContainers.size(); ++i)
-    {
-        if (mSliderContainers[i]->getParameterID() == ParameterIDStrings[AppParameterID::Pan])
-        {
+    for (int i = 0; i < mSliderContainers.size(); ++i) {
+        if (mSliderContainers[i]->getParameterID() == ParameterIDStrings[AppParameterID::Pan]) {
             mPanKnobIndex = i;
             break;
         }
@@ -98,12 +94,12 @@ void Week3SineGeneratorAudioProcessorEditor::resized()
             int comboBoxHeight = 50; // Adjust the height as needed
             int comboBoxX = topRightArea.getX()+180;
             int comboBoxY = topRightArea.getBottom()+180; // 10 is the gap between the FlexBox and the ComboBox
-            mNumBussesComboBox.setBounds(comboBoxX, comboBoxY, comboBoxWidth, comboBoxHeight);
+        mNumBussesComboBox->setBounds(comboBoxX, comboBoxY, comboBoxWidth, comboBoxHeight);
         }
 }
 
 
-void Week3SineGeneratorAudioProcessorEditor::timerCallback()
-{
-    
+void SurroundSounderAudioProcessorEditor::timerCallback() {
+
 }
+

@@ -13,45 +13,61 @@
 #include "ParameterManager.h"
 #include "Panning.h"
 #include "NumBussesComboBox.h"
+#include "ProcessorInterface.h"
 
 
 //==============================================================================
 /**
 */
-class Week3SineGeneratorAudioProcessor  : public juce::AudioProcessor
-                            #if JucePlugin_Enable_ARA
-                             , public juce::AudioProcessorARAExtension
-                            #endif
+class SurroundSounderAudioProcessor : public juce::AudioProcessor,
+                                      public ProcessorInterface
+#if JucePlugin_Enable_ARA
+    , public juce::AudioProcessorARAExtension
+#endif
 {
 public:
     //==============================================================================
-    Week3SineGeneratorAudioProcessor();
-    ~Week3SineGeneratorAudioProcessor() override;
-    
+    SurroundSounderAudioProcessor();
+
+    ~SurroundSounderAudioProcessor() override;
+
     //==============================================================================
-    void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) override;
+    void processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midi) override;
 
     /* */
     void setGain(float inGain);
-    
+
     /* */
     float getGain();
-    
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+
     void releaseResources() override;
 
-   #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-   #endif
+#ifndef JucePlugin_PreferredChannelConfigurations
+
+    bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
+
+#endif
+
+    /**
+     * Processor Interface Overrides
+     */
+
+    ParameterManager *getParameterManager() override;
+
+    AudioProcessor *getAudioProcessor() override;
 
     //==============================================================================
-    juce::AudioProcessorEditor* createEditor() override;
+    juce::AudioProcessorEditor *createEditor() override;
+
     bool hasEditor() const override;
 
     //==============================================================================
     const juce::String getName() const override;
 
     bool acceptsMidi() const override;
+
     bool producesMidi() const override;
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
@@ -66,14 +82,8 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-    
-    void setNumBuses(int numBuses);
-    
-    ParameterManager* getParameterManager();
-    
-    
-    
-    
+
+
 private:
     
     std::unique_ptr<Panning> mPanning;
@@ -84,13 +94,11 @@ private:
     std::unique_ptr<ParameterManager> mParameterManager;
     
     int mNumBuses = 0;
-    
-    juce::SmoothedValue<float> mSmoothedPanValue;
-    
-    NumBussesComboBox mNumBussesComboBox;
+
+    juce::SmoothedValue<float> mSmoothPanValue;
     
 
     
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Week3SineGeneratorAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SurroundSounderAudioProcessor)
 };

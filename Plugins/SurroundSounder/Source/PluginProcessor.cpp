@@ -12,44 +12,45 @@
 
 
 //==============================================================================
-void Week3SineGeneratorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
-{
-    mSmoothedPanValue.reset(sampleRate, 0.01);
-    mSmoothedPanValue.setCurrentAndTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
+void SurroundSounderAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    mSmoothPanValue.reset(sampleRate, 0.01);
+    mSmoothPanValue.setCurrentAndTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
 
-    
-    for (int i = 0; i < mDelayL.size(); i++) {
-        mDelayL[i].initialize(sampleRate, samplesPerBlock);
+
+    for (auto &i: mDelayL) {
+        i.initialize(sampleRate, samplesPerBlock);
     }
-    
-    for (int i = 0; i < mDelayR.size(); i++) {
-        mDelayR[i].initialize(sampleRate, samplesPerBlock);
+
+    for (auto &i: mDelayR) {
+        i.initialize(sampleRate, samplesPerBlock);
     }
 }
 
 
-void Week3SineGeneratorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
-{
+void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
     jassert(buffer.getNumChannels() == getTotalNumOutputChannels());
+
+    mNumBuses = mParameterManager->getCurrentParameterValue(AppParameterID::BusCount);
 
     /* boiler plate stuff to not touch */
     juce::ScopedNoDenormals noDenormals;
-    
+
     //clear the bus buffers so no screechy sounds
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-    
-    float pan = mParameterManager->getTreeState().getParameterAsValue(ParameterIDStrings[AppParameterID::Pan]).getValue();
-    
-    mSmoothedPanValue.setTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
-    mPanning->setSmoothedPanValue(mSmoothedPanValue.getNextValue());
-    
+        buffer.clear(i, 0, buffer.getNumSamples());
+
+    float pan = mParameterManager->getTreeState()->getParameterAsValue(
+            ParameterIDStrings[AppParameterID::Pan]).getValue();
+
+    mSmoothPanValue.setTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
+    mPanning->setSmoothedPanValue(mSmoothPanValue.getNextValue());
+
     mPanning->panAudioBuffer(buffer, pan, mNumBuses);
-    
+
     for (int i = 0; i < mNumBuses; i++) {
-        
+
         mDelayL[i].setParameters(mParameterManager->getCurrentParameterValue(AppParameterID::Time),
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Feedback),
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Mix),
@@ -71,19 +72,19 @@ void Week3SineGeneratorAudioProcessor::processBlock(juce::AudioBuffer<float>& bu
 }
 
 //==============================================================================
-Week3SineGeneratorAudioProcessor::Week3SineGeneratorAudioProcessor()
+SurroundSounderAudioProcessor::SurroundSounderAudioProcessor() :
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+        AudioProcessor(BusesProperties()
+#if !JucePlugin_IsMidiEffect
+#if !JucePlugin_IsSynth
+                               .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+                               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 
 //This is where we add 4 extra output buses: "Name", Channel Config, Activated By Default
-                       .withOutput ("Bus #1",  juce::AudioChannelSet::stereo(), true)
-                       .withOutput ("Bus #2",  juce::AudioChannelSet::stereo(), true)
-                       .withOutput ("Bus #3",  juce::AudioChannelSet::stereo(), true)
+                               .withOutput("Bus #1", juce::AudioChannelSet::stereo(), true)
+                               .withOutput("Bus #2", juce::AudioChannelSet::stereo(), true)
+                               .withOutput("Bus #3", juce::AudioChannelSet::stereo(), true)
                        .withOutput ("Bus #4",  juce::AudioChannelSet::stereo(), true)
                        .withOutput ("Bus #5",  juce::AudioChannelSet::stereo(), true)
                        .withOutput ("Bus #6",  juce::AudioChannelSet::stereo(), true)
@@ -96,7 +97,7 @@ Week3SineGeneratorAudioProcessor::Week3SineGeneratorAudioProcessor()
 {
     mParameterManager = std::make_unique<ParameterManager>(this);
     mPanning = std::make_unique<Panning>(this);
-    mSmoothedPanValue.reset(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
+    mSmoothPanValue.reset(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
 
 }
 
@@ -106,87 +107,75 @@ Week3SineGeneratorAudioProcessor::Week3SineGeneratorAudioProcessor()
 //}
 
 
-Week3SineGeneratorAudioProcessor::~Week3SineGeneratorAudioProcessor()
+SurroundSounderAudioProcessor::~SurroundSounderAudioProcessor()
 {
 }
-
 
 
 //==============================================================================
-const juce::String Week3SineGeneratorAudioProcessor::getName() const
-{
+const juce::String SurroundSounderAudioProcessor::getName() const {
     return JucePlugin_Name;
 }
 
-bool Week3SineGeneratorAudioProcessor::acceptsMidi() const
-{
-   #if JucePlugin_WantsMidiInput
+bool SurroundSounderAudioProcessor::acceptsMidi() const {
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
-bool Week3SineGeneratorAudioProcessor::producesMidi() const
-{
-   #if JucePlugin_ProducesMidiOutput
+bool SurroundSounderAudioProcessor::producesMidi() const {
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
-bool Week3SineGeneratorAudioProcessor::isMidiEffect() const
-{
-   #if JucePlugin_IsMidiEffect
+bool SurroundSounderAudioProcessor::isMidiEffect() const {
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
-double Week3SineGeneratorAudioProcessor::getTailLengthSeconds() const
-{
+double SurroundSounderAudioProcessor::getTailLengthSeconds() const {
     return 0.0;
 }
 
-int Week3SineGeneratorAudioProcessor::getNumPrograms()
-{
+int SurroundSounderAudioProcessor::getNumPrograms() {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int Week3SineGeneratorAudioProcessor::getCurrentProgram()
-{
+int SurroundSounderAudioProcessor::getCurrentProgram() {
     return 0;
 }
 
-void Week3SineGeneratorAudioProcessor::setCurrentProgram (int index)
-{
+void SurroundSounderAudioProcessor::setCurrentProgram(int index) {
 }
 
-const juce::String Week3SineGeneratorAudioProcessor::getProgramName (int index)
-{
+const juce::String SurroundSounderAudioProcessor::getProgramName(int index) {
     return {};
 }
 
-void Week3SineGeneratorAudioProcessor::changeProgramName (int index, const juce::String& newName)
-{
+void SurroundSounderAudioProcessor::changeProgramName(int index, const juce::String &newName) {
 }
 
-void Week3SineGeneratorAudioProcessor::releaseResources()
-{
+void SurroundSounderAudioProcessor::releaseResources() {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool Week3SineGeneratorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
-{
-  #if JucePlugin_IsMidiEffect
+
+bool SurroundSounderAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const {
+#if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
     return true;
-  #else
+#else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
@@ -207,36 +196,35 @@ bool Week3SineGeneratorAudioProcessor::isBusesLayoutSupported (const BusesLayout
 #endif
 
 //==============================================================================
-bool Week3SineGeneratorAudioProcessor::hasEditor() const
-{
+bool SurroundSounderAudioProcessor::hasEditor() const {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* Week3SineGeneratorAudioProcessor::createEditor()
-{
-    return new Week3SineGeneratorAudioProcessorEditor (*this);
+juce::AudioProcessorEditor *SurroundSounderAudioProcessor::createEditor() {
+    return new SurroundSounderAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void Week3SineGeneratorAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
-{
-    
-    auto state = mParameterManager->getTreeState().copyState();
+void SurroundSounderAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {
+    DBG ("Trying to save state");
+    auto state = mParameterManager->getTreeState()->copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    DBG(xml->toString());
     copyXmlToBinary(*xml, destData);
-    
-}
-
-void Week3SineGeneratorAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
-{
-
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary (data, sizeInBytes));
-    mParameterManager->getTreeState().replaceState(juce::ValueTree::fromXml(*xmlState));
 
 }
 
-ParameterManager* Week3SineGeneratorAudioProcessor::getParameterManager()
-{
+void SurroundSounderAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
+    DBG ("Trying to load state");
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get()) {
+        DBG(xmlState->toString());
+        mParameterManager->getTreeState()->replaceState(juce::ValueTree::fromXml(*xmlState));
+    }
+
+}
+
+ParameterManager *SurroundSounderAudioProcessor::getParameterManager() {
     return mParameterManager.get();
 }
 
@@ -244,10 +232,9 @@ ParameterManager* Week3SineGeneratorAudioProcessor::getParameterManager()
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new Week3SineGeneratorAudioProcessor();
+    return new SurroundSounderAudioProcessor();
 }
 
-void Week3SineGeneratorAudioProcessor::setNumBuses(int numBuses){
-    
-    mNumBuses = numBuses;
+AudioProcessor *SurroundSounderAudioProcessor::getAudioProcessor() {
+    return this;
 }
