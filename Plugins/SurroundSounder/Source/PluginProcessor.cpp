@@ -41,13 +41,16 @@ void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
+    float spreadAmount = mParameterManager->getTreeState()->getParameterAsValue(
+            ParameterIDStrings[AppParameterID::Spread]).getValue();
+
     float pan = mParameterManager->getTreeState()->getParameterAsValue(
             ParameterIDStrings[AppParameterID::Pan]).getValue();
 
     mSmoothPanValue.setTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
     mPanning->setSmoothedPanValue(mSmoothPanValue.getNextValue());
 
-    mPanning->panAudioBuffer(buffer, pan, mNumBuses);
+    mPanning->panAudioBuffer(buffer, pan, mNumBuses, spreadAmount);
 
     for (int i = 0; i < mNumBuses; i++) {
 

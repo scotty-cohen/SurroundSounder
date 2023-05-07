@@ -18,15 +18,19 @@ Panning::Panning(juce::AudioProcessor* inAudioProcessor)
 
 Panning::~Panning() = default;
 
-void Panning::panAudioBuffer(juce::AudioBuffer<float>& buffer, float panPosition, int numBuses)
-{
-    
+void Panning::panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float spread) {
+
+    //SHOULD BE PARAMETER CONTROLLED BUT DOESN'T BEHAVE AS INTENDED
+    spread = 1;
+    //
+
     updateBusBuffers(buffer, numBuses);
-    
+
     //linear panning algorythm for gain knob
     //the width of a 'notch' in the slider
-    auto notch = 1.0/numBuses;
-             
+    auto notch = spread / numBuses;
+
+
     //home of position of each bus on the slider
     std::vector<float> homePositions(numBuses);
     for (int i = 0; i < numBuses; ++i) {
@@ -38,22 +42,26 @@ void Panning::panAudioBuffer(juce::AudioBuffer<float>& buffer, float panPosition
 
     std::vector<double> levelsL(numBuses);
     std::vector<double> levelsR(numBuses);
-    
-    
+
+
     for (int i = 0; i < numBuses; ++i) {
+
         double wrapAroundSliderPosition = sliderPosition > homePositions[i] ? sliderPosition - 1 : sliderPosition;
         
         double distance = std::min(static_cast<double>(std::abs(homePositions[i] - sliderPosition)),
                                    static_cast<double>(std::abs(homePositions[i] - wrapAroundSliderPosition))); // Wrap-around effect;
-        
+
+
         double levelL = juce::jlimit(0.0, 1.0, distance / notch);
         double levelR = juce::jlimit(0.0, 1.0, distance / notch);
+
 
         levelL = 1 - levelL;
         levelR = 1 - levelR;
 
         levelsL[i] = levelL;
         levelsR[i] = levelR;
+
     }
     
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
@@ -67,7 +75,7 @@ void Panning::panAudioBuffer(juce::AudioBuffer<float>& buffer, float panPosition
             mBusBuffers[i].setSample(1, sample, (right_sample * levelsR[i]));
 
         }
-        
+
     }
 
 
