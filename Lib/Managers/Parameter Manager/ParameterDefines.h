@@ -16,7 +16,6 @@ enum AppParameterID {
     Feedback,
     Lowpass,
     Highpass,
-    Spread,
     BusCount,
     TotalNumberParameters,
 
@@ -30,7 +29,6 @@ static juce::Array<juce::String> ParameterIDStrings{
         "Feedback",
         "Lowpass",
         "Highpass",
-        "Spread",
         "Bus Count"
 };
 
@@ -42,30 +40,27 @@ static juce::Array<float> ParameterMinimum{
         0.f,
         20.f,
         20.f,
-        1.f,
         1.f
 };
 
 static juce::Array<float> ParameterMaximum{
         1.f,
-        1.f,
+        10.f,
         1.f,
         1.f,
         .95f,
         22000.f,
         22000.f,
-        10.f,
         8.f
 };
 
 static juce::Array<float> ParameterDefault{
         .5f,
-        .5f,
+        0.f,
         .5f,
         .5f,
         .5f,
         22000.f,
         20.f,
-        1.f,
         2.f
 };

@@ -20,22 +20,21 @@ Panning::~Panning() = default;
 
 void Panning::panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float spread) {
 
-    //SHOULD BE PARAMETER CONTROLLED BUT DOESN'T BEHAVE AS INTENDED
-    spread = 1;
-    //
-
     updateBusBuffers(buffer, numBuses);
 
-    //linear panning algorythm for gain knob
     //the width of a 'notch' in the slider
-    auto notch = spread / numBuses;
+    // Calculate the notch overlap based on the spread value (0 to 1)
+    float notchOverlap = spread * (1.0f / numBuses);
 
+    // Calculate the width of a 'notch' in the slider
+    auto notch = (1.0f / numBuses) + notchOverlap;
 
-    //home of position of each bus on the slider
+    // Calculate the home positions of each bus on the slider
     std::vector<float> homePositions(numBuses);
     for (int i = 0; i < numBuses; ++i) {
-        homePositions[i] = notch * i;
+        homePositions[i] = (1.0f / numBuses) * i;
     }
+
 
     //normalized slider position (0 - 1)
     auto sliderPosition = panPosition;
@@ -45,30 +44,29 @@ void Panning::panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition
 
 
     for (int i = 0; i < numBuses; ++i) {
-
         double wrapAroundSliderPosition = sliderPosition > homePositions[i] ? sliderPosition - 1 : sliderPosition;
-        
+
+
         double distance = std::min(static_cast<double>(std::abs(homePositions[i] - sliderPosition)),
-                                   static_cast<double>(std::abs(homePositions[i] - wrapAroundSliderPosition))); // Wrap-around effect;
+                                   static_cast<double>(std::abs(
+                                           homePositions[i] - wrapAroundSliderPosition)));// Wrap-around effect;
 
 
         double levelL = juce::jlimit(0.0, 1.0, distance / notch);
         double levelR = juce::jlimit(0.0, 1.0, distance / notch);
-
 
         levelL = 1 - levelL;
         levelR = 1 - levelR;
 
         levelsL[i] = levelL;
         levelsR[i] = levelR;
-
     }
-    
+
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
         auto left_sample = buffer.getSample(0, sample);
         auto right_sample = buffer.getSample(1, sample);
 
-        
+
         //PROBLEM
         for (int i = 0; i < numBuses; i++) {
             mBusBuffers[i].setSample(0, sample, (left_sample * levelsL[i]));

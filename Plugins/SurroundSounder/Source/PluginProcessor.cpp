@@ -42,7 +42,7 @@ void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
         buffer.clear(i, 0, buffer.getNumSamples());
 
     float spreadAmount = mParameterManager->getTreeState()->getParameterAsValue(
-            ParameterIDStrings[AppParameterID::Spread]).getValue();
+            ParameterIDStrings[AppParameterID::Size]).getValue();
 
     float pan = mParameterManager->getTreeState()->getParameterAsValue(
             ParameterIDStrings[AppParameterID::Pan]).getValue();
