@@ -16,6 +16,7 @@ SurroundSounderAudioProcessorEditor::SurroundSounderAudioProcessorEditor(Surroun
         : AudioProcessorEditor(&p), audioProcessor(p) {
     setLookAndFeel(&mLookAndFeel);
 
+
     auto tree_state = audioProcessor.getParameterManager()->getTreeState();
 
     for (int i = 0; i < audioProcessor.getParameters().size(); i++) {
@@ -24,6 +25,17 @@ SurroundSounderAudioProcessorEditor::SurroundSounderAudioProcessorEditor(Surroun
         } else {
             bool stopAtEnd = (i != AppParameterID::Pan); // Set stopAtEnd to false only for the Pan knob
             mSliderContainers.add(new SliderContainer(stopAtEnd));
+
+            mSliderContainers[i]->getSlider().addMouseListener(&mLookAndFeel, true);
+
+
+            if (i == AppParameterID::Size) {
+                float newMidPoint = 1.5; // Replace with the desired value at 80% point
+                mSliderContainers[AppParameterID::Size]->getSlider().setSkewFactorFromMidPoint(newMidPoint);
+                mSliderContainers[i]->getSlider().setSkewFactor(
+                        0.00001); // Set the desired skew factor for the Size slider
+            }
+
             mSliderContainers[i]->setParameterToControl(*tree_state, ParameterIDStrings[i]);
             addAndMakeVisible(mSliderContainers[i]);
         }

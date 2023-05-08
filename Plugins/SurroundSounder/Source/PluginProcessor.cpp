@@ -16,6 +16,9 @@ void SurroundSounderAudioProcessor::prepareToPlay(double sampleRate, int samples
     mSmoothPanValue.reset(sampleRate, 0.01);
     mSmoothPanValue.setCurrentAndTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
 
+    mSmoothSizeValue.reset(sampleRate, 0.01);
+    mSmoothSizeValue.setCurrentAndTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Size));
+
 
     for (auto &i: mDelayL) {
         i.initialize(sampleRate, samplesPerBlock);
@@ -101,6 +104,7 @@ SurroundSounderAudioProcessor::SurroundSounderAudioProcessor() :
     mParameterManager = std::make_unique<ParameterManager>(this);
     mPanning = std::make_unique<Panning>(this);
     mSmoothPanValue.reset(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
+    mSmoothSizeValue.reset(mParameterManager->getCurrentParameterValue(AppParameterID::Size));
 
 }
 

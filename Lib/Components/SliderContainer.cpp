@@ -52,21 +52,20 @@ void SliderContainer::resized()
     mLabel.setFont(Font(14.0f));
     mLabel.setColour(Label::textColourId, Colours::black);
 
-    
 
 }
 
-    
-const juce::String& SliderContainer::getParameterID() const
-{
+
+const juce::String &SliderContainer::getParameterID() const {
     return parameterID;
 }
 
-    
-    
-    
-    
-    
+juce::Slider &SliderContainer::getSlider() {
+    return mSlider;
+}
+
+
+
 
 //
 

@@ -96,6 +96,7 @@ private:
     int mNumBuses = 0;
 
     juce::SmoothedValue<float> mSmoothPanValue;
+    juce::SmoothedValue<float> mSmoothSizeValue;
     
 
     

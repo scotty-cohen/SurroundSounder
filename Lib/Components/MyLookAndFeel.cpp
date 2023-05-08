@@ -18,36 +18,65 @@ void MyLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, int 
                                              Slider& slider)
 {
     int knob_size = jmin(width, height);
-    
-    
+
+
     mKnobSize = knob_size;
-    
-    Rectangle<float> container_bounds { (float) x ,(float) y,(float) width,(float) height};
-    Rectangle<float> knob_bounds { container_bounds.getCentreX() - knob_size/2,
-        container_bounds.getCentreY() - knob_size/2,
-        (float) knob_size,
-        (float) knob_size};
+
+    Rectangle<float> container_bounds{(float) x, (float) y, (float) width, (float) height};
+    Rectangle<float> knob_bounds{container_bounds.getCentreX() - knob_size / 2,
+                                 container_bounds.getCentreY() - knob_size / 2,
+                                 (float) knob_size,
+                                 (float) knob_size};
     Point<float> center = knob_bounds.getCentre();
-    
-    g.setColour(Colour(100,100,100));
+
+    auto toAngle = rotaryStartAngle + (sliderPos + .048f) * (MathConstants<float>::twoPi / 2);
+
+    // Create an Image object for the knob and its shadow
+    Image knobImage(Image::PixelFormat::ARGB, width, height, true);
+    // Create a new Graphics object for the knob image
+    Graphics knobGraphics(knobImage);
+    knobGraphics.setColour(Colour(100, 100, 100));
+    knobGraphics.fillEllipse(knob_bounds);
+
+    // Apply the drop shadow effect to the knob image
+    dropShadowEffect.applyEffect(knobImage, g, .3f, 1.0f);
+
+
+    //Draw the basic knob
+    g.setColour(knobColor);;
     g.fillEllipse(knob_bounds);
-    
     g.setColour(Colour(255, 255, 255));
-    g.fillEllipse(knob_bounds.reduced(knob_size*.01, knob_size*.01));
-    
-    g.setColour(Colour (100, 100, 100));
-    g.fillEllipse(knob_bounds.reduced(knob_size*.08, knob_size*.08));
-    
+    g.fillEllipse(knob_bounds.reduced(knob_size * .01, knob_size * .01));
+    g.setColour(knobColor);;
+    g.fillEllipse(knob_bounds.reduced(knob_size * .08, knob_size * .08));
 
-    
-        auto toAngle = rotaryStartAngle + (sliderPos + .048f) * (MathConstants<float>::twoPi/2);
+    // Draw the filled arc
+    Path filledArc;
+    float arcWidth = knob_size * 0.08f;
+    float outerRadius = (knob_size / 2.0f) - arcWidth;
+    float innerRadius = outerRadius - arcWidth;
+    float startAngle = rotaryStartAngle;
+    float endAngle = toAngle;
+    float angleOffset = MathConstants<float>::pi / 2;
 
-        auto knobCenter = knob_bounds.getCentre();
-        auto thumbRadius = knob_size;
-        auto thumbRadius2 = knob_size *.5;
-        auto rectBounds = knob_bounds.withSizeKeepingCentre(knob_size * 0.6, knob_size * 0.5);
-        auto rectCenter = rectBounds.getCentre();
-        auto rectAngle = toAngle;
+    filledArc.addCentredArc(knob_bounds.getCentreX(), knob_bounds.getCentreY(),
+                            outerRadius, outerRadius,
+                            0.0f, startAngle * 2 + angleOffset + .35, endAngle * 2 + angleOffset, true);
+    filledArc.addCentredArc(knob_bounds.getCentreX(), knob_bounds.getCentreY(),
+                            innerRadius, innerRadius,
+                            0.0f, endAngle * 2 + angleOffset, startAngle * 2 + angleOffset + .35, false);
+    filledArc.closeSubPath();
+
+    g.setColour(Colours::orange); // Set the color of the filled arc
+    g.fillPath(filledArc);
+
+
+    auto knobCenter = knob_bounds.getCentre();
+    auto thumbRadius = knob_size;
+    auto thumbRadius2 = knob_size * .5;
+    auto rectBounds = knob_bounds.withSizeKeepingCentre(knob_size * 0.6, knob_size * 0.5);
+    auto rectCenter = rectBounds.getCentre();
+    auto rectAngle = toAngle;
 
 
         // Rotate the graphics context around the center of the knob
@@ -57,24 +86,23 @@ void MyLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, int 
         // Draw line
         g.setColour (Colours::black);
         for (int i = 0; i < 1; i++) {
-            g.drawLine (rectCenter.getX(), rectCenter.getY(),
-                        rectCenter.getX() + (thumbRadius * 0.5) * std::cos(rectAngle),
-                        rectCenter.getY() + (thumbRadius * 0.5) * std::sin(rectAngle),
-                        knob_size * 0.075);
+            g.drawLine(rectCenter.getX(), rectCenter.getY(),
+                       rectCenter.getX() + (thumbRadius * 0.5) * std::cos(rectAngle),
+                       rectCenter.getY() + (thumbRadius * 0.5) * std::sin(rectAngle),
+                       knob_size * 0.075);
 
-            
-            
-    }
-    
+
+        }
+
     // Draw line
-    g.setColour(Colour (100, 100, 100));
+    g.setColour(knobColor);;
     g.strokePath(Path().createPathWithRoundedCorners(4), PathStrokeType(10.0));
     for (int i = 0; i < 1; i++) {
-        g.drawLine (rectCenter.getX(), rectCenter.getY(),
-                    rectCenter.getX() + (thumbRadius2 * 0.5) * std::cos(rectAngle),
-                    rectCenter.getY() + (thumbRadius2 * 0.5) * std::sin(rectAngle),
-                    knob_size * 0.1);
-        
+        g.drawLine(rectCenter.getX(), rectCenter.getY(),
+                   rectCenter.getX() + (thumbRadius2 * 0.5) * std::cos(rectAngle),
+                   rectCenter.getY() + (thumbRadius2 * 0.5) * std::sin(rectAngle),
+                   knob_size * 0.1);
+
     }
 
     // Draw the center circle
@@ -83,7 +111,7 @@ void MyLookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int width, int 
                                          center.y - centerSize / 2.0f,
                                          centerSize,
                                          centerSize);
-    g.setColour(Colour(100, 100, 100));
+    g.setColour(knobColor);;
     g.fillEllipse(centerBounds);
 
 
@@ -125,16 +153,26 @@ void MyLookAndFeel::drawPopupMenuItem (juce::Graphics& g, const juce::Rectangle<
                          const juce::Drawable* icon, const juce::Colour* const textColourToUse)
 {
     juce::Colour textColour;
-        
-        if (isHighlighted)
-            textColour = juce::Colour (173, 216, 230); // Light blue when hovered
-        else
-            textColour = juce::Colours::black; // White text when not hovered
 
-        auto& defaultLookAndFeel = static_cast<LookAndFeel_V4&>(LookAndFeel::getDefaultLookAndFeel());
-        defaultLookAndFeel.drawPopupMenuItem(g, area, isSeparator, isActive, isHighlighted, isTicked, hasSubMenu,
-                                          text, shortcutKeyText, icon, &textColour);
+    if (isHighlighted)
+        textColour = juce::Colour(173, 216, 230); // Light blue when hovered
+    else
+        textColour = juce::Colours::black; // White text when not hovered
+
+    auto &defaultLookAndFeel = static_cast<LookAndFeel_V4 &>(LookAndFeel::getDefaultLookAndFeel());
+    defaultLookAndFeel.drawPopupMenuItem(g, area, isSeparator, isActive, isHighlighted, isTicked, hasSubMenu,
+                                         text, shortcutKeyText, icon, &textColour);
 }
 
+void MyLookAndFeel::mouseDown(const MouseEvent &event) {
+    knobColor = Colour(150, 150, 150);
+    if (auto *slider = dynamic_cast<Slider *>(event.eventComponent))
+        slider->repaint();
+}
 
+void MyLookAndFeel::mouseUp(const MouseEvent &event) {
+    knobColor = Colour(100, 100, 100);
+    if (auto *slider = dynamic_cast<Slider *>(event.eventComponent))
+        slider->repaint();
+}
 

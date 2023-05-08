@@ -20,27 +20,28 @@ public:
     /*/*/
     
     SliderContainer(bool stopAtEnd = true);
-    
+
     /**/
-    void setParameterToControl(juce::AudioProcessorValueTreeState& inVTS, const juce::String& inParamID);
-    
+    void setParameterToControl(juce::AudioProcessorValueTreeState &inVTS, const juce::String &inParamID);
+
     /***/
     void resized() override;
-    
-    
-    const juce::String& getParameterID() const;
 
-    
-    
+
+    const juce::String &getParameterID() const;
+
+    juce::Slider &getSlider();
+
+
 private:
-    
-juce::Slider mSlider;
-juce::Label  mLabel;
-std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mAttachment;
 
-MyLookAndFeel mLookAndFeel;
-    
-bool stopAtEnd; // Add a new member variable
+    juce::Slider mSlider;
+    juce::Label mLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mAttachment;
+
+    MyLookAndFeel mLookAndFeel;
+
+    bool stopAtEnd; // Add a new member variable
     
 juce::String parameterID;
     
