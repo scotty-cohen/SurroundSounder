@@ -45,6 +45,11 @@ public:
                            const juce::String &shortcutKeyText,
                            const juce::Drawable *icon, const juce::Colour *const textColourToUse) override;
 
+    void drawLinearSlider(Graphics &g, int x, int y, int width, int height,
+                          float sliderPos, float minSliderPos, float maxSliderPos,
+                          const Slider::SliderStyle style, Slider &slider) override;
+
+
     void mouseDown(const MouseEvent &event) override;
 
     void mouseUp(const MouseEvent &event) override;

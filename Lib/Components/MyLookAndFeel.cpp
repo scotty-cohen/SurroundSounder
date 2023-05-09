@@ -164,6 +164,27 @@ void MyLookAndFeel::drawPopupMenuItem (juce::Graphics& g, const juce::Rectangle<
                                          text, shortcutKeyText, icon, &textColour);
 }
 
+void MyLookAndFeel::drawLinearSlider(Graphics &g, int x, int y, int width, int height,
+                                     float sliderPos, float minSliderPos, float maxSliderPos,
+                                     const Slider::SliderStyle style, Slider &slider) {
+    // Draw the black line
+    g.setColour(Colours::black);
+    float trackWidth = 4.0f;
+    g.drawLine(x, y + height / 2, x + width, y + height / 2, trackWidth);
+
+    // Draw the blue circle
+    float thumbRadius = 14.0f;
+    juce::Colour thumbColor = juce::Colours::blue;
+
+    g.setColour(thumbColor.withAlpha(0.4f));
+    g.fillEllipse(sliderPos - thumbRadius, y + (height - thumbRadius * 2.0f) * 0.5f,
+                  thumbRadius * 2.0f, thumbRadius * 2.0f);
+
+    g.setColour(thumbColor);
+    g.drawEllipse(sliderPos - thumbRadius, y + (height - thumbRadius * 2.0f) * 0.5f,
+                  thumbRadius * 2.0f, thumbRadius * 2.0f, 2.0f);
+}
+
 void MyLookAndFeel::mouseDown(const MouseEvent &event) {
     knobColor = Colour(150, 150, 150);
     if (auto *slider = dynamic_cast<Slider *>(event.eventComponent))

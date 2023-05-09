@@ -17,7 +17,6 @@ SliderContainer::SliderContainer(bool stopAtEnd) : stopAtEnd(stopAtEnd)
     
     
     mSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryVerticalDrag);
-     
     mLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(mSlider);
     addAndMakeVisible(mLabel);
@@ -44,15 +43,19 @@ void SliderContainer::resized()
     
     auto bounds = getLocalBounds();
     int knobSize = mLookAndFeel.getKnobSize();
-    
-    mSlider.setBounds(bounds.removeFromTop(getHeight()*.8f));
+
+    mSlider.setBounds(bounds.removeFromTop(getHeight() * .8f));
     mSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, knobSize, mSlider.getHeight() * 0.03f);
-    
+
     mLabel.setBounds(bounds);
     mLabel.setFont(Font(14.0f));
     mLabel.setColour(Label::textColourId, Colours::black);
 
 
+}
+
+void SliderContainer::setSliderStyle(juce::Slider::SliderStyle style) {
+    mSlider.setSliderStyle(style);
 }
 
 

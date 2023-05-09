@@ -47,6 +47,7 @@ private:
 
     //Grab the pan knob out of the flexbox
     int mPanKnobIndex = -1;
+    int mSignalSpreadIndex = -1;
 
     //Add Combobox for numbusses
     std::unique_ptr<NumBussesComboBox> mNumBussesComboBox;

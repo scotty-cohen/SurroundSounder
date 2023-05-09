@@ -25,7 +25,6 @@ SurroundSounderAudioProcessorEditor::SurroundSounderAudioProcessorEditor(Surroun
         } else {
             bool stopAtEnd = (i != AppParameterID::Pan); // Set stopAtEnd to false only for the Pan knob
             mSliderContainers.add(new SliderContainer(stopAtEnd));
-
             mSliderContainers[i]->getSlider().addMouseListener(&mLookAndFeel, true);
 
 
@@ -41,9 +40,8 @@ SurroundSounderAudioProcessorEditor::SurroundSounderAudioProcessorEditor(Surroun
         }
     }
 
+    mSliderContainers[AppParameterID::SignalSpread]->setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
     mNumBussesComboBox = std::make_unique<NumBussesComboBox>(&audioProcessor);
-
-
     addAndMakeVisible(mNumBussesComboBox.get());
 
     // Make sure that before the constructor has finished, you've set the
@@ -71,16 +69,23 @@ void SurroundSounderAudioProcessorEditor::resized() {
             break;
         }
     }
-    
+
     {
         auto area = getLocalBounds();
-        
 
 
-        if (mPanKnobIndex >= 0)
-        {
-            auto panKnobBounds = area.removeFromLeft(250).removeFromBottom(400).withY(40).withX(100); // Adjust the size and position of the pan knob
+        //Set Pan Knob position
+        if (mPanKnobIndex >= 0) {
+            auto panKnobBounds = area.removeFromLeft(250).removeFromBottom(400).withY(40).withX(
+                    100); // Adjust the size and position of the pan knob
             mSliderContainers[mPanKnobIndex]->setBounds(panKnobBounds);
+        }
+
+        for (int i = 0; i < mSliderContainers.size(); ++i) {
+            if (mSliderContainers[i]->getParameterID() == ParameterIDStrings[AppParameterID::SignalSpread]) {
+                mSignalSpreadIndex = i;
+                break;
+            }
         }
 
         // Place the other knobs in the top-right corner
@@ -93,21 +98,36 @@ void SurroundSounderAudioProcessorEditor::resized() {
         mFlexbox.flexWrap = juce::FlexBox::Wrap::wrap;
         for (int i = 0; i < mSliderContainers.size(); ++i)
         {
-            if (i != mPanKnobIndex)
-            {
-                mFlexbox.items.add(juce::FlexItem(*mSliderContainers[i]).withMinHeight(75.0f).withMinWidth(75.0f).withFlex(1));
+            if (i != mPanKnobIndex && i != mSignalSpreadIndex) {
+                mFlexbox.items.add(
+                        juce::FlexItem(*mSliderContainers[i]).withMinHeight(75.0f).withMinWidth(75.0f).withFlex(1));
             }
         }
 
         mFlexbox.performLayout(topRightArea.toFloat());
-        
+
         // Set ComboBox position and width
-            int comboBoxWidth = topRightArea.getWidth()-200;
-            int comboBoxHeight = 50; // Adjust the height as needed
-            int comboBoxX = topRightArea.getX()+180;
-            int comboBoxY = topRightArea.getBottom()+180; // 10 is the gap between the FlexBox and the ComboBox
+        int comboBoxWidth = topRightArea.getWidth() - 175;
+        int comboBoxHeight = 50; // Adjust the height as needed
+        int comboBoxX = topRightArea.getX() + 180;
+        int comboBoxY = topRightArea.getBottom() + 180; // 10 is the gap between the FlexBox and the ComboBox
         mNumBussesComboBox->setBounds(comboBoxX, comboBoxY, comboBoxWidth, comboBoxHeight);
-        }
+    }
+
+    //Set Linear slider position
+    if (mSignalSpreadIndex >= 0) {
+        int sliderWidth = 400; // Adjust this value for desired slider width
+        int sliderHeight = 50; // Adjust this value for desired slider height
+        int padding = 10; // Adjust this value for desired padding
+
+        int x = getWidth() - sliderWidth - padding;
+        int y = getHeight() - sliderHeight - padding;
+
+        int offsetY = 75;
+        y -= offsetY;
+
+        mSliderContainers[mSignalSpreadIndex]->setBounds(x, y, sliderWidth, sliderHeight);
+    }
 }
 
 

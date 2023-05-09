@@ -16,9 +16,9 @@
 class SliderContainer : public juce::Component {
 
 public:
-    
+
     /*/*/
-    
+
     SliderContainer(bool stopAtEnd = true);
 
     /**/
@@ -27,8 +27,11 @@ public:
     /***/
     void resized() override;
 
+    void setSliderStyle(juce::Slider::SliderStyle style);
+
 
     const juce::String &getParameterID() const;
+
 
     juce::Slider &getSlider();
 
