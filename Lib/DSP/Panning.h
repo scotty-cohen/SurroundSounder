@@ -16,23 +16,26 @@ static const size_t MAX_NUM_BUSES = 8;
 
 class Panning {
 public:
-    
-    Panning(juce::AudioProcessor* inAudioProcessor);
+
+    Panning(juce::AudioProcessor *inAudioProcessor);
+
     ~Panning();
-    
+
     /* */
     void panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float spread);
-    
+
     void setSmoothedPanValue(float smoothedPanValue);
 
+    void panDelayBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float sizeAmount);
+
+/* */
+    void updateBusBuffers(juce::AudioBuffer<float> &buffer, int numBuses);
+
 private:
-    
-    /* */
-    void updateBusBuffers(juce::AudioBuffer<float>& buffer, int numBuses);
-    
-    juce::AudioProcessor* mAudioProcessor;
-    
+
+    juce::AudioProcessor *mAudioProcessor;
+
     std::array<juce::AudioBuffer<float>, MAX_NUM_BUSES> mBusBuffers;
-    
+
     float mSmoothedPanValue;
 };

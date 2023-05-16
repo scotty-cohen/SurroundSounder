@@ -53,11 +53,15 @@ void Delay::setParameters(float inTimeSeconds, float inFeedbackAmount, float inM
 }
 
 /* */
-void Delay::processBlock(float* inBuffer, int inNumSamples)
-{
+void Delay::processBlock(float *inBuffer, int inNumSamples, float *wetData) {
     for (int i = 0; i < inNumSamples; i++) {
         processSample(inBuffer[i]);
+        wetSignalBuffer.push_back(wetSignal);
     }
+
+    std::copy(wetSignalBuffer.begin(), wetSignalBuffer.end(), wetData);
+    wetSignalBuffer.clear(); // clear the buffer for the next run
+
 }
 
 /* */
@@ -100,6 +104,10 @@ void Delay::processSample(float& inSample)
 
 }
 
+
 float Delay::getWetSignal() const {
+
     return wetSignal;
 }
+
+

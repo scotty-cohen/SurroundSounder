@@ -28,12 +28,13 @@ public:
     void setParameters(float inTimeSeconds, float inFeedbackAmount, float inMix, float inLPFreq, float inHPFreq);
 
     /* */
-    void processBlock(float *inBuffer, int inNumSamples);
+    void processBlock(float *inBuffer, int inNumSamples, float *wetData);
 
     /* */
     void processSample(float &inSample);
 
     float getWetSignal() const;
+
 
 private:
 
@@ -54,6 +55,8 @@ private:
     juce::dsp::IIR::Filter<float> mLowpassFilter;
 
     float wetSignal;
+
+    std::vector<float> wetSignalBuffer;
 
 };
 

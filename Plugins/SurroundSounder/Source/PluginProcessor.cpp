@@ -13,6 +13,7 @@
 
 //==============================================================================
 void SurroundSounderAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+
     mSmoothPanValue.reset(sampleRate, 0.01);
     mSmoothPanValue.setCurrentAndTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
 
@@ -48,18 +49,21 @@ void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
             ParameterIDStrings[AppParameterID::SignalSpread]).getValue();
 
     float sizeAmount = mParameterManager->getTreeState()->getParameterAsValue(
-            ParameterIDStrings[AppParameterID::SignalSpread]).getValue();
+            ParameterIDStrings[AppParameterID::Size]).getValue();
 
     float pan = mParameterManager->getTreeState()->getParameterAsValue(
             ParameterIDStrings[AppParameterID::Pan]).getValue();
 
     mSmoothPanValue.setTargetValue(mParameterManager->getCurrentParameterValue(AppParameterID::Pan));
+    mPanning->updateBusBuffers(buffer, mNumBuses);
     mPanning->setSmoothedPanValue(mSmoothPanValue.getNextValue());
 
     mPanning->panAudioBuffer(buffer, pan, mNumBuses, spreadAmount);
 
     for (int i = 0; i < mNumBuses; i++) {
 
+
+        // Process the delay and pan
         mDelayL[i].setParameters(mParameterManager->getCurrentParameterValue(AppParameterID::Time),
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Feedback),
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Mix),
@@ -73,24 +77,26 @@ void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Highpass));
 
         auto bus = getBusBuffer(buffer, false, i + 1);
-
-        //ISSUES ARISE WHEN TRYING TO ADJUST WIDTH OF DELAY WET BUFFER ON IT'S OWN, NOT SURE HOW TO IMPLEMENT WITHOUT POPPING A JUCE ASSERTION
-        /*
+        juce::AudioBuffer<float> dryBuffer(bus);
         juce::AudioBuffer<float> wetBuffer(2, bus.getNumSamples());
-        for (int sample = 0; sample < bus.getNumSamples(); ++sample) {
-            float wetSignalL = mDelayL[i].getWetSignal();
-            float wetSignalR = mDelayR[i].getWetSignal();
-            wetBuffer.setSample(0, sample, wetSignalL);
-            wetBuffer.setSample(1, sample, wetSignalR);
+
+        mDelayL[i].processBlock(bus.getWritePointer(0), bus.getNumSamples(), wetBuffer.getWritePointer(0));
+        mDelayR[i].processBlock(bus.getWritePointer(1), bus.getNumSamples(), wetBuffer.getWritePointer(1));
+
+        // Copy the wet signal to the temporary buffer
+        wetBuffer.makeCopyOf(bus);
+
+        // Copy the original dry signal back to the bus buffer
+        bus.makeCopyOf(dryBuffer);
+
+        // Pan the wet signal
+        mPanning->panAudioBuffer(wetBuffer, pan, mNumBuses, sizeAmount);
+
+
+        for (int channel = 0; channel < 2; ++channel) {
+            bus.addFrom(channel, 0, wetBuffer, channel, 0, bus.getNumSamples());
         }
 
-        mPanning->panAudioBuffer(wetBuffer, pan, mNumBuses, sizeAmount);
-        bus.addFrom(0, 0, wetBuffer, 0, 0, bus.getNumSamples());
-        bus.addFrom(1, 0, wetBuffer, 1, 0, bus.getNumSamples());
-        */
-
-        mDelayL[i].processBlock(bus.getWritePointer(0), bus.getNumSamples());
-        mDelayR[i].processBlock(bus.getWritePointer(1), bus.getNumSamples());
 
     }
 
