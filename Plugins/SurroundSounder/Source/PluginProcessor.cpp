@@ -77,26 +77,24 @@ void SurroundSounderAudioProcessor::processBlock(juce::AudioBuffer<float> &buffe
                                  mParameterManager->getCurrentParameterValue(AppParameterID::Highpass));
 
         auto bus = getBusBuffer(buffer, false, i + 1);
-        juce::AudioBuffer<float> dryBuffer(bus);
+
+
+
+        // Create the wetData array
+        std::vector<float> wetDataL(bus.getNumSamples());
+        std::vector<float> wetDataR(bus.getNumSamples());
+
+        mDelayL[i].processBlock(bus.getWritePointer(0), bus.getNumSamples(), wetDataL.data());
+        mDelayR[i].processBlock(bus.getWritePointer(1), bus.getNumSamples(), wetDataR.data());
+
+
+        // Create the wetBuffer and fill it with wetData
         juce::AudioBuffer<float> wetBuffer(2, bus.getNumSamples());
-
-        mDelayL[i].processBlock(bus.getWritePointer(0), bus.getNumSamples(), wetBuffer.getWritePointer(0));
-        mDelayR[i].processBlock(bus.getWritePointer(1), bus.getNumSamples(), wetBuffer.getWritePointer(1));
-
-        // Copy the wet signal to the temporary buffer
-        wetBuffer.makeCopyOf(bus);
-
-        // Copy the original dry signal back to the bus buffer
-        bus.makeCopyOf(dryBuffer);
+        wetBuffer.copyFrom(0, 0, wetDataL.data(), bus.getNumSamples());
+        wetBuffer.copyFrom(1, 0, wetDataR.data(), bus.getNumSamples());
 
         // Pan the wet signal
-        mPanning->panAudioBuffer(wetBuffer, pan, mNumBuses, sizeAmount);
-
-
-        for (int channel = 0; channel < 2; ++channel) {
-            bus.addFrom(channel, 0, wetBuffer, channel, 0, bus.getNumSamples());
-        }
-
+        mPanning->delaySizeBuffer(wetBuffer, pan, mNumBuses, sizeAmount);
 
     }
 

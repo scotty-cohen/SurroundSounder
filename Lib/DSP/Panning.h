@@ -22,11 +22,11 @@ public:
     ~Panning();
 
     /* */
-    void panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float spread);
+    void panAudioBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float spreadAmount);
+
+    void delaySizeBuffer(juce::AudioBuffer<float> &wetBuffer, float panPosition, int numBuses, float sizeAmount);
 
     void setSmoothedPanValue(float smoothedPanValue);
-
-    void panDelayBuffer(juce::AudioBuffer<float> &buffer, float panPosition, int numBuses, float sizeAmount);
 
 /* */
     void updateBusBuffers(juce::AudioBuffer<float> &buffer, int numBuses);
